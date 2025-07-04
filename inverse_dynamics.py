@@ -5,6 +5,9 @@ from robot_descriptions.loaders.pinocchio import load_robot_description
 robot = load_robot_description("ur5_description")   # downloads/caches the UR5 URDF
 model, data = robot.model, robot.data
 
+# robot.setVisualizer(MeshcatVisualizer())
+robot.setVisualizer(GepettoVisualizer())
+
 # init gepetto-gui in another terminal
 robot.initViewer(loadModel=True)
 robot.display(q)

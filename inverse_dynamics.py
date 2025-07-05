@@ -5,16 +5,16 @@ from robot_descriptions.loaders.pinocchio import load_robot_description
 robot = load_robot_description("ur5_description")   # downloads/caches the UR5 URDF
 model, data = robot.model, robot.data
 
+q  = pin.neutral(model)              # joint poisition
+v  = 0.1 * pin.utils.rand(model.nv)  # joint velocity
+a  = 0.2 * pin.utils.rand(model.nv)  # joint acceleration
+
 # robot.setVisualizer(MeshcatVisualizer())
 robot.setVisualizer(GepettoVisualizer())
 
 # init gepetto-gui in another terminal
 robot.initViewer(loadModel=True)
 robot.display(q)
-
-q  = pin.neutral(model)              # joint poisition
-v  = 0.1 * pin.utils.rand(model.nv)  # joint velocity
-a  = 0.2 * pin.utils.rand(model.nv)  # joint acceleration
 
 # inverse dynamics
 tau = pin.rnea(model, data, q, v, a)

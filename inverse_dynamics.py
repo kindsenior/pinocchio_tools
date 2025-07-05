@@ -1,5 +1,5 @@
-import numpy as np
-import pinocchio as pin
+from pathlib import Path
+from robot_wrapper import *
 from robot_descriptions.loaders.pinocchio import load_robot_description
 
 robot = load_robot_description("ur5_description")   # downloads/caches the UR5 URDF

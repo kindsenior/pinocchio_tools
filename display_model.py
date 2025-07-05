@@ -27,18 +27,18 @@ def add_fixed_frame_with_axis(self, name, parent_joint_name,
 # FK + frameFK + update frames
 def display_with_frames(self, q):
     # pin.forwardKinematics(self.model, self.data, q)
-    # pin.updateFramePlacements(self.model, self.data)
-    # pin.updateGeometryPlacements(self.model, self.data, self.viz.visual_model, self.viz.visual_data)
+    ## update viz.data and viz.visual_data for visualizing
+    ## data and visual_data are different b/w robot and viz
+    # pin.forwardKinematics(self.model, self.viz.data, q)
+    # pin.updateGeometryPlacements(self.model, self.viz.data, self.viz.visual_model, self.viz.visual_data)
     # self.viz.display()
-    self.viz.display(q)
-    pin.updateFramePlacements(self.model, self.data)
+    self.display(q)
+    self.framesForwardKinematics(q)
 
     for frame_id, node_name in getattr(self, "_axis_nodes", {}).items():
-        # axis_name = f"world/{node_name}"
         print(f"node_name: {node_name}")
         self.viewer.gui.applyConfiguration(node_name, pin.SE3ToXYZQUATtuple(self.data.oMf[frame_id]))
     self.viewer.gui.refresh()
-    # self.viz.display(q)
 
 # monkey-patch to RobotWrapper
 from pinocchio.robot_wrapper import RobotWrapper

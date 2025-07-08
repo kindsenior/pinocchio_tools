@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.linalg import norm, solve
 import pinocchio as pin
 from pinocchio.visualize import MeshcatVisualizer, GepettoVisualizer
 
@@ -37,9 +38,58 @@ def display_with_frames(self, q):
         self.viewer.gui.applyConfiguration(node_name, pin.SE3ToXYZQUATtuple(self.data.oMf[frame_id]))
     self.viewer.gui.refresh()
 
+def inverse_kinematics(self, joint_name, target_frame,
+                       init_q = None,
+                       damp = 1e-12,
+                       DT = 1e-1,
+                       eps = 1e-4,
+                       IT_MAX = 1000,
+                       visualize = True):
+    q = self.q0 if init_q is None else init_q
+    if joint_name in self.model.names:
+        joint_id = self.model.getJointId(joint_name)
+    else:
+        print(f"{joint_name} is not included in {self.model.names.tolist()}")
+        return q
+
+    i = 0
+    while True:
+        pin.forwardKinematics(self.model, self.data, q)
+        iMd = self.data.oMi[joint_id].actInv(target_frame)
+        err = pin.log(iMd).vector  # in joint frame
+
+        if norm(err) < eps:
+            success = True
+            break
+        if i >= IT_MAX:
+            success = False
+            break
+        J = pin.computeJointJacobian(self.model, self.data, q, joint_id)  # in joint frame
+        J = -pin.Jlog6(iMd.inverse()) @ J
+        v = -J.T @ solve(J.dot(J.T) + damp * np.eye(6), err)
+        q = pin.integrate(self.model, q, v * DT)
+        if not i % 10:
+            print(f"{i}: error = {err.T}")
+            i += 1
+
+    if success:
+        print("Convergence achieved!")
+    else:
+        print(
+            "\n"
+            "Warning: the iterative algorithm has not reached convergence "
+            "to the desired precision"
+        )
+    print(f"\nresult: {q.flatten().tolist()}")
+    print(f"\nfinal error: {err.T}")
+
+    if visualize: self.display(q)
+
+    return q
+
 # monkey-patch to RobotWrapper
 from pinocchio.robot_wrapper import RobotWrapper
 # add method after import
 RobotWrapper.add_fixed_frame_with_axis = add_fixed_frame_with_axis
 RobotWrapper.display_with_frames       = display_with_frames
-
+RobotWrapper.inverse_kinematics        = inverse_kinematics

@@ -19,18 +19,19 @@ robot.forwardKinematics(q)
 robot.computeJointJacobians(q)
 ee_id = robot.model.getJointId("rarm_wrist2_joint")
 J = robot.getJointJacobian(ee_id, pin.ReferenceFrame.WORLD)
+print(f"J for joint id:{ee_id}")
 mprint(J)
 
 # partial jacobian
-keep_names = [
+joint_names = [
     "root_joint",
     "rarm_shoulder1_joint", "rarm_shoulder2_joint", "rarm_shoulder3_joint",
     "rarm_elbow_joint", "rarm_wrist1_joint", "rarm_wrist2_joint"
 ]
-keep_ids = [model.getJointId(n) for n in keep_names]
+joint_ids = [model.getJointId(n) for n in joint_names]
 
 # # from reducedModel
-# lock_ids = [j.id for j in model.joints if j.id not in keep_ids]
+# lock_ids = [j.id for j in model.joints if j.id not in joint_ids]
 # q_ref = pin.neutral(model)
 # rmodel = pin.buildReducedModel(model, lock_ids, q_ref)
 # robot_arm = RobotWrapper(rmodel)
@@ -47,7 +48,7 @@ start_end_joints = ('rarm_shoulder1_joint', 'rarm_wrist2_joint')
 pos_cols = np.array(robot.get_position_index_list(*start_end_joints))
 vel_cols = np.array(robot.get_velocity_index_list(*start_end_joints))
 q = pin.neutral(model)
-q[arm_cols+1] = np.deg2rad(np.array([0,-90,0,0,0,0]))
+q[pos_cols] = np.deg2rad(np.array([0,90,0,0,0,0]))
 robot.forwardKinematics(q)
 robot.display(q)
 robot.computeJointJacobians(q)

@@ -38,6 +38,39 @@ def display_with_frames(self, q):
         self.viewer.gui.applyConfiguration(node_name, pin.SE3ToXYZQUATtuple(self.data.oMf[frame_id]))
     self.viewer.gui.refresh()
 
+def get_joint_names(self, start_joint, end_joint):
+    """get a joint names' list from the start joint name and the end joint
+
+    Ags:
+    arg1(str): the joint name of the start of the list
+    arg2(str): the joint name of the end of the list
+
+    Returns:
+    list: the list including the joint names
+    """
+    joint_names = self.model.names.tolist()
+    start = joint_names.index(start_joint)
+    end   = joint_names.index(end_joint)
+    return joint_names[start : end + 1]
+
+def get_position_index_list(self, start_joint = None, end_joint = None, joint_names = None):
+    if joint_names is None:
+        joint_names = self.get_joint_names(start_joint, end_joint)
+    q_cols = []
+    for jname in joint_names:
+        jid  = self.model.getJointId(jname)
+        q_cols.extend(range(self.model.idx_qs[jid], self.model.idx_qs[jid] + self.model.nqs[jid]))
+    return q_cols
+
+def get_velocity_index_list(self, start_joint = None, end_joint = None, joint_names = None):
+    if joint_names is None:
+        joint_names = self.get_joint_names(start_joint, end_joint)
+    v_cols = []
+    for jname in joint_names:
+        jid  = self.model.getJointId(jname)
+        v_cols.extend(range(self.model.idx_vs[jid], self.model.idx_vs[jid] + self.model.nvs[jid]))
+    return v_cols
+
 def inverse_kinematics(self, joint_name, target_frame,
                        init_q = None,
                        damp = 1e-12,
@@ -92,4 +125,7 @@ from pinocchio.robot_wrapper import RobotWrapper
 # add method after import
 RobotWrapper.add_fixed_frame_with_axis = add_fixed_frame_with_axis
 RobotWrapper.display_with_frames       = display_with_frames
+RobotWrapper.get_joint_names           = get_joint_names
+RobotWrapper.get_position_index_list   = get_position_index_list
+RobotWrapper.get_velocity_index_list   = get_velocity_index_list
 RobotWrapper.inverse_kinematics        = inverse_kinematics

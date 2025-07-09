@@ -1,8 +1,8 @@
 import numpy as np
 import pinocchio as pin
-from pinocchio.robot_wrapper import RobotWrapper
 from pinocchio.utils import *
 from pinocchio.visualize import MeshcatVisualizer, GepettoVisualizer
+from robot_wrapper import *
 
 model = pin.buildSampleModelHumanoid()
 visual_model  = pin.buildSampleGeometryModelHumanoid(model)
@@ -42,25 +42,17 @@ keep_ids = [model.getJointId(n) for n in keep_names]
 
 # # extract jacobian of the full model
 ee_frame = "rarm_effector_body"
-keep_names = [
-    "rarm_shoulder1_joint", "rarm_shoulder2_joint", "rarm_shoulder3_joint",
-    "rarm_elbow_joint",
-    "rarm_wrist1_joint", "rarm_wrist2_joint"
-]
-arm_cols = []
-for jname in keep_names:
-    jid  = model.getJointId(jname)
-    arm_cols.extend(range(model.idx_vs[jid], model.idx_vs[jid] + model.nvs[jid]))
-    # joint = model.joints[jid]
-    # arm_cols.extend(range(joint.idx_v, joint.idx_v + joint.nv))
-arm_cols = np.array(arm_cols)
 fid = model.getFrameId(ee_frame)
+start_end_joints = ('rarm_shoulder1_joint', 'rarm_wrist2_joint')
+pos_cols = np.array(robot.get_position_index_list(*start_end_joints))
+vel_cols = np.array(robot.get_velocity_index_list(*start_end_joints))
 q = pin.neutral(model)
 q[arm_cols+1] = np.deg2rad(np.array([0,-90,0,0,0,0]))
 robot.forwardKinematics(q)
 robot.display(q)
 robot.computeJointJacobians(q)
 J_frame = robot.getFrameJacobian(fid, pin.ReferenceFrame.WORLD)
-J_arm = J_frame[:, arm_cols]
+J_arm = J_frame[:, vel_cols]
+print(f"partial J for frame id:{ee_id}")
 mprint(J_arm)
 print("arm jacobian shape:", J_arm.shape) # (6, 6)

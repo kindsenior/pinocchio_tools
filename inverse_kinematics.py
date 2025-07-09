@@ -21,7 +21,8 @@ node_name = "world/target"
 robot.viewer.gui.addXYZaxis(node_name, [1., 0., 0., 1.], axis_radius, axis_size)
 node_dict[node_name] = des_frame
 
-q = robot.inverse_kinematics("wrist2_joint", des_frame)
+# q = robot.inverse_kinematics("wrist2_joint", des_frame)
+q = robot.inverse_kinematics("wrist2_joint", des_frame, robot.get_joint_names('shoulder1_joint', 'wrist2_joint'))
 
 # display frames
 for node_name, node in node_dict.items():

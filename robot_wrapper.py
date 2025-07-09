@@ -72,6 +72,7 @@ def get_velocity_index_list(self, start_joint = None, end_joint = None, joint_na
     return v_cols
 
 def inverse_kinematics(self, joint_name, target_frame,
+                       joint_names = None,
                        init_q = None,
                        damp = 1e-12,
                        DT = 1e-1,
@@ -84,6 +85,12 @@ def inverse_kinematics(self, joint_name, target_frame,
     else:
         print(f"{joint_name} is not included in {self.model.names.tolist()}")
         return q
+
+    is_partial = False
+    if  joint_names is not None:
+        pos_cols = np.array(self.get_position_index_list(joint_names = joint_names))
+        vel_cols = np.array(self.get_velocity_index_list(joint_names = joint_names))
+        is_partial = True
 
     i = 0
     while True:
@@ -99,8 +106,14 @@ def inverse_kinematics(self, joint_name, target_frame,
             break
         J = pin.computeJointJacobian(self.model, self.data, q, joint_id)  # in joint frame
         J = -pin.Jlog6(iMd.inverse()) @ J
-        v = -J.T @ solve(J.dot(J.T) + damp * np.eye(6), err)
-        q = pin.integrate(self.model, q, v * DT)
+        if is_partial:
+            J = J[:,vel_cols]
+            v = -J.T @ solve(J.dot(J.T) + damp * np.eye(6), err)
+            # q[pos_cols] = pin.integrate(self.model, q[pos_cols], v * DT) # The configuration vector is not of the right size
+            q[pos_cols] += v * DT
+        else:
+            v = -J.T @ solve(J.dot(J.T) + damp * np.eye(6), err)
+            q = pin.integrate(self.model, q, v * DT)
         if not i % 10:
             print(f"{i}: error = {err.T}")
             i += 1

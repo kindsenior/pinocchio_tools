@@ -72,7 +72,32 @@ def get_velocity_index_list(self, start_joint = None, end_joint = None, joint_na
         v_cols.extend(range(self.model.idx_vs[jid], self.model.idx_vs[jid] + self.model.nvs[jid]))
     return v_cols
 
-def inverse_kinematics(self, joint_name, target_frame,
+def get_joint_jacobian(self, joint_angles, target_joint, joint_names = None, frame=pin.ReferenceFrame.WORLD):
+    joint_id = self.model.getJointId(target_joint)
+
+    # set joint angles for FK
+    if len(joint_angles) == len(self.q0):
+        q = joint_angles
+    else:
+        q = np.zeros_like(self.q0)
+        q[self.get_position_index_list(joint_names = joint_names)] = joint_angles
+
+    # ForwardKinematics
+    self.forwardKinematics(q)
+    self.computeJointJacobians(q)
+
+    # calculate Jacobian
+    J = self.getJointJacobian(joint_id, frame)
+    if joint_names is None:
+        return J
+    else:
+        vel_cols = self.get_velocity_index_list(joint_names = joint_names)
+        return J[:, vel_cols]
+
+def normalize_pi(self, angle):
+    return (angle + np.pi) % (2 * np.pi) - np.pi
+
+def inverse_kinematics(self, target_joint_name, target_frame,
                        joint_names = None,
                        init_q = None,
                        damp = 1e-12,
@@ -80,9 +105,9 @@ def inverse_kinematics(self, joint_name, target_frame,
                        eps = 1e-4,
                        IT_MAX = 1000,
                        visualize = True):
-    q = self.q0 if init_q is None else init_q
-    if joint_name in self.model.names:
-        joint_id = self.model.getJointId(joint_name)
+    q = self.q0.copy() if init_q is None else init_q
+    if target_joint_name in self.model.names:
+        joint_id = self.model.getJointId(target_joint_name)
     else:
         logging.error(f"{target_joint_name} is not included in {self.model.names.tolist()}")
         return q
@@ -115,6 +140,8 @@ def inverse_kinematics(self, joint_name, target_frame,
         else:
             v = -J.T @ solve(J.dot(J.T) + damp * np.eye(6), err)
             q = pin.integrate(self.model, q, v * DT)
+
+        q = self.normalize_pi(q) # normalize joint angles into -pi to pi
         if not i % 10:
             logging.debug(f"{i}: error = {err.T}")
             i += 1
@@ -139,7 +166,9 @@ from pinocchio.robot_wrapper import RobotWrapper
 # add method after import
 RobotWrapper.add_fixed_frame_with_axis = add_fixed_frame_with_axis
 RobotWrapper.display_with_frames       = display_with_frames
+RobotWrapper.get_joint_jacobian        = get_joint_jacobian
 RobotWrapper.get_joint_names           = get_joint_names
 RobotWrapper.get_position_index_list   = get_position_index_list
 RobotWrapper.get_velocity_index_list   = get_velocity_index_list
+RobotWrapper.normalize_pi              = normalize_pi
 RobotWrapper.inverse_kinematics        = inverse_kinematics

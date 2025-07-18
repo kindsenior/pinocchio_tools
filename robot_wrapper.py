@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 from numpy.linalg import norm, solve
 import pinocchio as pin
@@ -34,7 +35,7 @@ def display_with_frames(self, q):
     self.framesForwardKinematics(q)
 
     for frame_id, node_name in getattr(self, "_axis_nodes", {}).items():
-        print(f"node_name: {node_name}")
+        logging.debug(f"node_name: {node_name}")
         self.viewer.gui.applyConfiguration(node_name, pin.SE3ToXYZQUATtuple(self.data.oMf[frame_id]))
     self.viewer.gui.refresh()
 
@@ -83,7 +84,7 @@ def inverse_kinematics(self, joint_name, target_frame,
     if joint_name in self.model.names:
         joint_id = self.model.getJointId(joint_name)
     else:
-        print(f"{joint_name} is not included in {self.model.names.tolist()}")
+        logging.error(f"{target_joint_name} is not included in {self.model.names.tolist()}")
         return q
 
     is_partial = False
@@ -115,19 +116,19 @@ def inverse_kinematics(self, joint_name, target_frame,
             v = -J.T @ solve(J.dot(J.T) + damp * np.eye(6), err)
             q = pin.integrate(self.model, q, v * DT)
         if not i % 10:
-            print(f"{i}: error = {err.T}")
+            logging.debug(f"{i}: error = {err.T}")
             i += 1
 
     if success:
-        print("Convergence achieved!")
+        logging.debug("Convergence achieved!")
     else:
-        print(
+        logging.error(
             "\n"
             "Warning: the iterative algorithm has not reached convergence "
             "to the desired precision"
         )
-    print(f"\nresult: {q.flatten().tolist()}")
-    print(f"\nfinal error: {err.T}")
+    logging.debug(f"\nresult: {q.flatten().tolist()}")
+    logging.debug(f"\nfinal error: {err.T}")
 
     if visualize: self.display(q)
 

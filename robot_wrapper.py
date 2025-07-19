@@ -10,7 +10,7 @@ def add_fixed_frame_with_axis(self, name, parent_joint_name,
                               axis_radius=0.01, axis_size=0.05):
     # add a frame
     parent_id  = self.model.getJointId(parent_joint_name)
-    local_offset  = pin.SE3(pin.rpy.rpyToMatrix(offset_rpy), np.array(offset_pos))
+    local_offset  = pin.SE3(pin.rpy.rpyToMatrix(*offset_rpy), np.array(offset_pos))
     frame_id = self.model.addFrame(pin.Frame(name, parent_id, local_offset, pin.FrameType.FIXED_JOINT))
     self.rebuildData()
 

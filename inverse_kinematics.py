@@ -8,7 +8,7 @@ collision_model = visual_model.copy()
 robot = RobotWrapper(model, collision_model, visual_model)
 robot.setVisualizer(GepettoVisualizer())
 robot.initViewer(loadModel=True)
-q = robot.q0
+q = robot.q0.copy()
 robot.display(q)
 
 # target frame

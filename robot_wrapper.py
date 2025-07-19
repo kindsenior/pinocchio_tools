@@ -1,3 +1,4 @@
+from hppfcl import Box, Cylinder
 import logging
 import numpy as np
 from numpy.linalg import norm, solve
@@ -39,6 +40,96 @@ def display_with_frames(self, q):
         self.viewer.gui.applyConfiguration(node_name, pin.SE3ToXYZQUATtuple(self.data.oMf[frame_id]))
     self.viewer.gui.refresh()
 
+# robot modeling
+def add_joint_link(self, joint_name, link_name, joint_axis, joint_translation, parent_joint_id, link_translation = None, color = None):
+    """add a joint and its link frames
+
+    Ags:
+    joint_name(str)
+    link_name(str)
+    joint_axis(list)
+    joint_translation(list)
+    parent_joint_id(int)
+    link_translation(list): the vector depicts the link shape
+    color(list)
+
+    Returns:
+    joint_id(int), frame_id(int)
+    """
+    if type(joint_axis) == list: joint_axis = np.array(joint_axis, dtype=np.double)
+    joint_axis /= np.linalg.norm(joint_axis)
+
+    if type(joint_translation) == list: joint_translation = np.array(joint_translation, dtype=np.double)
+    joint_placement = pin.SE3(np.eye(3), joint_translation)
+
+    if type(link_translation) == list: link_translation = np.array(link_translation, dtype=np.double)
+
+    if color is None: color = [0.8, 0.8, 0.8, 1.0]
+    if type(color) == list: color = np.array(color, dtype=np.float32)
+
+    joint_radius = 0.05 # the radius of the joint cylinder
+    joint_width = 0.1   # the width of the joint cylinder
+
+    z_axis = np.array([0,0,1], dtype=np.double)
+
+    # add joint
+    joint_id = self.model.addJoint(parent_joint_id, pin.JointModelRevoluteUnaligned(joint_axis), joint_placement, joint_name)
+    self.model.appendBodyToJoint(joint_id, pin.Inertia.Random(), pin.SE3.Identity())
+
+    # add frame
+    frame_id = self.model.addFrame(pin.Frame(link_name, joint_id, 0, pin.SE3.Identity(), pin.FrameType.BODY))
+
+    def generate_axial_geometry(default_axis, target_axis, geometry_size, joint_id, frame_id, geometry_name):
+        """generate a geometry (like a cylinder or a link-shaped box) aligned the the target_axis
+
+        Ags:
+        default_axis(numpy.array): the default height axis direction of the geometry (e.g. cylinder's default_axis is z-axis [0,0,1])
+        target_axis (numpy.array): the target direction to align the geometry
+        geometry_size(tupple)
+        joint_id(int)
+        frame_id(int)
+        geometry_name(str)
+
+        Returns:
+        pinocchio.pinocchio_pywrap_default.GeometryObject: the generated geometry object
+        """
+        v = np.cross(default_axis, target_axis)
+        # rotate the geometry by the angle axis of default_axis x target_axis
+        rotation = pin.AngleAxis(np.arccos(default_axis @ target_axis), v/np.linalg.norm(v)).matrix() if np.linalg.norm(v) > np.finfo(np.float32).eps else np.eye(3)
+        geom_obj = pin.GeometryObject(geometry_name,
+                                      joint_id,
+                                      frame_id,
+                                      pin.SE3(rotation, np.zeros(3, dtype=np.float32)),
+                                      Cylinder(*geometry_size),
+        )
+        logging.info(f"rotation:\n{rotation}")
+        return geom_obj
+
+    # visual geometries
+    ## add a cylinder for rotational joints
+    geom_obj = generate_axial_geometry(z_axis, joint_axis, (joint_radius, joint_width), joint_id, frame_id, f"{link_name}_joint")
+    geom_obj.meshColor = color
+    self.visual_model.addGeometryObject(geom_obj)
+
+    ## add a geometry of the link shape
+    if link_translation is not None:
+        link_direction = link_translation/np.linalg.norm(link_translation)
+        # the geometry's name must be different with the joint's geometry's
+        geom_obj = generate_axial_geometry(z_axis, link_direction,
+                                           (joint_radius*0.5, np.linalg.norm(link_translation)),
+                                           joint_id, frame_id, f"{link_name}_shape",
+        )
+        geom_obj.placement.translation = 0.5*link_translation
+        geom_obj.meshColor = color
+        self.visual_model.addGeometryObject(geom_obj)
+
+    logging.info(f"parent_joint_id:{parent_joint_id}")
+    logging.info(f"joint_id:{joint_id}")
+    logging.info(f"frame_id:{frame_id}")
+
+    return joint_id, frame_id
+
+# kinematics
 def get_joint_names(self, start_joint, end_joint):
     """get a joint names' list from the start joint name and the end joint
 
@@ -166,6 +257,7 @@ from pinocchio.robot_wrapper import RobotWrapper
 # add method after import
 RobotWrapper.add_fixed_frame_with_axis = add_fixed_frame_with_axis
 RobotWrapper.display_with_frames       = display_with_frames
+RobotWrapper.add_joint_link            = add_joint_link
 RobotWrapper.get_joint_jacobian        = get_joint_jacobian
 RobotWrapper.get_joint_names           = get_joint_names
 RobotWrapper.get_position_index_list   = get_position_index_list

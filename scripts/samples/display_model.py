@@ -1,5 +1,6 @@
+#!/usr/bin/env -S python3 -i
 from pathlib import Path
-from robot_wrapper import *
+from pinocchio_tools.robot_wrapper import *
 from robot_descriptions.loaders.pinocchio import load_robot_description
 
 # # UR5

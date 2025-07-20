@@ -1,8 +1,9 @@
+#!/usr/bin/env -S python3 -i
 import numpy as np
 import pinocchio as pin
 from pinocchio.utils import *
 from pinocchio.visualize import MeshcatVisualizer, GepettoVisualizer
-from robot_wrapper import *
+from pinocchio_tools.robot_wrapper import *
 
 model = pin.buildSampleModelHumanoid()
 visual_model  = pin.buildSampleGeometryModelHumanoid(model)

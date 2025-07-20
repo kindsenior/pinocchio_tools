@@ -1,9 +1,10 @@
+#!/usr/bin/env -S python3 -i
 import logging
 # logging.basicConfig(level=logging.DEBUG)
 
 import numpy as np
 import pinocchio as pin
-from robot_wrapper import *
+from pinocchio_tools.robot_wrapper import *
 
 red   = [1,0,0, 0.7]
 green = [0,1,0, 0.7]

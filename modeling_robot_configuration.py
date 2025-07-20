@@ -14,8 +14,8 @@ model = pin.Model()
 visual_model = pin.GeometryModel()
 collision_model = visual_model.copy()
 robot = RobotWrapper(model, collision_model, visual_model)
-robot.setVisualizer(GepettoVisualizer())
-# robot.setVisualizer(MeshcatVisualizer())
+# robot.setVisualizer(GepettoVisualizer())
+robot.setVisualizer(MeshcatVisualizer())
 
 # Free-flyer root joint
 joint_id = robot.model.addJoint(0, pin.JointModelFreeFlyer(), pin.SE3.Identity(), "root_joint")
@@ -45,12 +45,18 @@ parent_joint_id, _ = robot.add_joint_link("lleg_joint5", "lleg_link5", [0,1,0], 
 parent_joint_id, _ = robot.add_joint_link("lleg_joint6", "lleg_link6", [1,0,0],  [0,0,0],       parent_joint_id, link_translation=[0.15,0,0], color=blue)
 
 # initialize data
-robot.q0 = np.zeros(robot.model.nq, dtype=np.double)
+# robot.q0 = np.zeros(robot.model.nq, dtype=np.double)
+robot.q0 = np.array([0,0,0, 0,0,0,1,
+                     0,0,0,0,0,0,
+                     0,0,0,0,0,0],
+                    dtype=np.double)
 robot.rebuildData()
 
 # visualize
-robot.initViewer(loadModel=True)
-# robot.initViewer(loadModel=True, open=True)
+if type(robot.viz) == MeshcatVisualizer:
+    robot.initViewer(loadModel=True, open=True)
+else:
+    robot.initViewer(loadModel=True)
 q = robot.q0.copy()
 robot.display(q)
 

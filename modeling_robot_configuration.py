@@ -55,21 +55,24 @@ q = robot.q0.copy()
 robot.display(q)
 
 # inverse kinematics
-# target frame
-des_frame = pin.SE3(pin.rpy.rpyToMatrix(0,np.pi/6,0), np.array([0.3, -0.2, -0.6]))
+def test_inverse_kinamtics():
+    # target frame
+    des_frame = pin.SE3(pin.rpy.rpyToMatrix(0,np.pi/6,0), np.array([0.3, -0.2, -0.6]))
 
-# add XYZaxis
-node_dict = {}
-axis_radius = 0.05; axis_size = 0.2
-node_name = "world/target"
-robot.viewer.gui.addXYZaxis(node_name, [1., 0., 0., 1.], axis_radius, axis_size)
-node_dict[node_name] = des_frame
+    # add XYZaxis
+    node_dict = {}
+    axis_radius = 0.05; axis_size = 0.2
+    node_name = "world/target"
+    robot.viewer.gui.addXYZaxis(node_name, [1., 0., 0., 1.], axis_radius, axis_size)
+    node_dict[node_name] = des_frame
 
-# q = robot.inverse_kinematics("wrist2_joint", des_frame)
-q = robot.inverse_kinematics("rleg_joint6", des_frame, robot.get_joint_names('rleg_joint1', 'rleg_joint6'))
+    # q = robot.inverse_kinematics("wrist2_joint", des_frame)
+    q = robot.inverse_kinematics("rleg_joint6", des_frame, robot.get_joint_names('rleg_joint1', 'rleg_joint6'))
 
-# display frames
-for node_name, node in node_dict.items():
-    print(f"node_name: {node_name}")
-    robot.viewer.gui.applyConfiguration(node_name, pin.SE3ToXYZQUATtuple(node))
-robot.viewer.gui.refresh()
+    # display frames
+    for node_name, node in node_dict.items():
+        print(f"node_name: {node_name}")
+        robot.viewer.gui.applyConfiguration(node_name, pin.SE3ToXYZQUATtuple(node))
+    robot.viewer.gui.refresh()
+
+# test_inverse_kinamtics()

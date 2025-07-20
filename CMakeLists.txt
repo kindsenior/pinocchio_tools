@@ -14,13 +14,13 @@ catkin_package()
 #   DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION}
 # )
 
-# python scripts
-file(GLOB_RECURSE PYTHON_SCRIPTS
-  RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
-  scripts/*.py
-)
+# Install python scripts
+# file(GLOB_RECURSE PYTHON_SCRIPTS
+#   RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+#   scripts/*.py
+# )
 
-catkin_install_python(
-  PROGRAMS ${PYTHON_SCRIPTS}
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+# catkin_install_python(
+#   PROGRAMS ${PYTHON_SCRIPTS}
+#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )

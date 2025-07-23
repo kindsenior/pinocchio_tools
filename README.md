@@ -4,7 +4,6 @@
 
    1.1 If you use Geppeto-gui, execute the followings:
    ```
-   # add the robotpkg repository from http://robotpkg.openrobots.org/debian.html
    sudo apt install robotpkg-pinocchio robotpkg-py38-qt5-gepetto-viewer-corba
    sudo apt install robotpkg-example-robot-data
    python3 -m pip install robot_descriptions

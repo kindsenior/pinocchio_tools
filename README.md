@@ -10,6 +10,6 @@
    ```
    1.1 If you use Meshcat, execute the followings:
    ```
-   python3 -m pip install
+   python3 -m pip install meshcat
    ```
 1. git clone pinocchio_tools in your catkin workspace and catkin build

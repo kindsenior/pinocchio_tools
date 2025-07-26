@@ -141,8 +141,12 @@ def get_joint_names(self, start_joint, end_joint):
     list: the list including the joint names
     """
     joint_names = self.model.names.tolist()
-    start = joint_names.index(start_joint)
-    end   = joint_names.index(end_joint)
+    try:
+        start = joint_names.index(start_joint)
+        end   = joint_names.index(end_joint)
+    except ValueError as e:
+        logging.error(f"start_joint: {start_joint}, end_joint: {end_joint} are not included in {joint_names}")
+        raise e
     return joint_names[start : end + 1]
 
 def get_position_index_list(self, start_joint = None, end_joint = None, joint_names = None):

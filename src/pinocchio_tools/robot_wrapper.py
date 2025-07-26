@@ -163,7 +163,7 @@ def get_velocity_index_list(self, start_joint = None, end_joint = None, joint_na
         v_cols.extend(range(self.model.idx_vs[jid], self.model.idx_vs[jid] + self.model.nvs[jid]))
     return v_cols
 
-def get_joint_jacobian(self, joint_angles, target_joint, joint_names = None, frame=pin.ReferenceFrame.WORLD):
+def get_joint_jacobian(self, joint_angles, target_joint, joint_names = None, frame=None):
     joint_id = self.model.getJointId(target_joint)
 
     # set joint angles for FK
@@ -176,6 +176,9 @@ def get_joint_jacobian(self, joint_angles, target_joint, joint_names = None, fra
     # ForwardKinematics
     self.forwardKinematics(q)
     self.computeJointJacobians(q)
+
+    if frame is None:
+        frame = pin.ReferenceFrame.LOCAL_WORLD_ALIGNED
 
     # calculate Jacobian
     J = self.getJointJacobian(joint_id, frame)

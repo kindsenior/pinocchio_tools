@@ -8,7 +8,7 @@ catkin_python_setup()
 
 catkin_package()
 
-# Install Python libraries for releasse
+# Install Python libraries for release
 # install(
 #   DIRECTORY src/pinocchio_tools
 #   DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION}
